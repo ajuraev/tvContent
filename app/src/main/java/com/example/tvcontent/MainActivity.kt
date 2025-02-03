@@ -18,6 +18,8 @@ import kotlinx.serialization.json.Json
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tvcontent.ui.theme.TvContentTheme
 import com.example.tvcontent.viewModel.ContentViewModel
+import io.github.jan.supabase.gotrue.Auth
+
 
 class MainActivity : ComponentActivity() {
     // Create the Supabase client (replace with your own URL and Key)
@@ -27,11 +29,14 @@ class MainActivity : ComponentActivity() {
     ) {
         install(Postgrest)
         install(Realtime)
+        install(Auth)
+
         defaultSerializer = KotlinXSerializer(Json { ignoreUnknownKeys = true })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             // Provide a single instance of the ContentViewModel
             val contentViewModel: ContentViewModel = viewModel(

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TvContent</string>
+    <string name="exo_download_notification_channel_name">Test Channel</string>
 </resources>

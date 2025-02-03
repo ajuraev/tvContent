@@ -66,6 +66,7 @@ dependencies {
     implementation(platform("io.github.jan-tennert.supabase:bom:2.0.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt")
     implementation("io.ktor:ktor-client-core:2.3.4")
     implementation("io.ktor:ktor-client-okhttp:2.3.4")
     implementation("io.ktor:ktor-client-plugins:2.3.4")
@@ -77,5 +78,8 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation ("androidx.navigation:navigation-compose:2.8.5")
 
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation("androidx.media3:media3-exoplayer-dash:1.5.1")
+    implementation("androidx.media3:media3-ui:1.5.1")
 
 }
