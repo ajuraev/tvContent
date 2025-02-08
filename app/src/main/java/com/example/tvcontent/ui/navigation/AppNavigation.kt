@@ -70,10 +70,20 @@ private fun NavGraphBuilder.addStoreSelectionScreen(
             },
             onLogout = {
                 coroutineScope.launch {
-                    supabaseClient.auth.signOut() // Sign out the user
-                    supabaseClient.realtime.disconnect()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.StoreSelection.route) { inclusive = true }
+                    try {
+                        // Attempt to refresh the session before logging out
+                        supabaseClient.auth.refreshCurrentSession()
+                        supabaseClient.auth.signOut()
+                        supabaseClient.realtime.disconnect()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.StoreSelection.route) { inclusive = true }
+                        }
+                    } catch (e: Exception) {
+                        // If session refresh fails, force logout and clear navigation
+                        supabaseClient.auth.signOut()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 }
             },

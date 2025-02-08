@@ -11,7 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.C
+import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
+import com.example.tvcontent.databinding.LayoutPlayerTextureBinding
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -33,102 +34,69 @@ fun FullScreenVideo(
 ) {
     val context = LocalContext.current
 
-    // Create a stable reference to the ExoPlayer that survives recomposition
+    // 1) Create your cache-enabled DataSource.Factory
+    val dataSourceFactory = remember {
+        VideoCacheManager.getCacheDataSourceFactory(context)
+    }
+    val mediaSourceFactory = remember {
+        DefaultMediaSourceFactory(dataSourceFactory)
+    }
+
+    // 2) Build the ExoPlayer once via remember { ... }
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
-            .setRenderersFactory(
-                DefaultRenderersFactory(context)
-                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
-                    .setEnableDecoderFallback(true)
-            )
-            .setTrackSelector(
-                DefaultTrackSelector(context).apply {
-                    setParameters(buildUponParameters().setMaxVideoSizeSd())
-                }
-            )
-            .setLoadControl(
-                DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(
-                        DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * 2,
-                        DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * 2,
-                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS * 2,
-                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS * 2
-                    )
-                    .build()
-            )
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(
-                    VideoCacheManager.getCacheDataSourceFactory(context)
-                )
-            )
+            // Inject the media source factory that uses your cached DataSource
+            .setMediaSourceFactory(mediaSourceFactory)
             .build()
             .apply {
-                repeatMode = Player.REPEAT_MODE_OFF
                 playWhenReady = true
+                repeatMode = Player.REPEAT_MODE_OFF
+
+                // 3) Attach a single listener
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(state: Int) {
+                        Log.d("FullScreen", "Playback state = $state")
+                        if (state == Player.STATE_ENDED) {
+                            onPlaybackEnded()
+                        }
+                    }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        onError(error)
+                        Log.e("FullScreen", "Player error: $error")
+                    }
+
+                    override fun onRenderedFirstFrame() {
+                        Log.d("FullScreen", "Rendered first frame for $url!")
+                    }
+                })
             }
     }
 
-    // Set up the player listener using a side effect to handle changes to url/playIndex
+    // 4) Whenever url or playIndex changes, just reset and prepare
     LaunchedEffect(url, playIndex) {
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                Log.d("FullScreen", "Playback state = $state")
-                if (state == Player.STATE_ENDED) {
-                    onPlaybackEnded()
-                }
-            }
-
-            override fun onPlayerError(error: PlaybackException) {
-                onError(error)
-                Log.e("FullScreen", "Player error: $error")
-            }
-
-            override fun onRenderedFirstFrame() {
-                Log.d("FullScreen", "Rendered first frame for $url!")
-            }
-        })
-
-        // Reset and prepare the player with the new URL
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(url)))
         exoPlayer.prepare()
     }
 
-    // Create a stable reference to the PlayerView
-    val playerView = remember {
-        PlayerView(context).apply {
-            useController = false
-            layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            isFocusable = true
-            isFocusableInTouchMode = true
-            setKeepContentOnPlayerReset(true)  // Changed to true to maintain surface
-            setShutterBackgroundColor(android.graphics.Color.BLACK)
-        }
-    }
-
-    // Use LaunchedEffect to handle player assignment and surface preparation
-    LaunchedEffect(playerView) {
-        playerView.player = exoPlayer
-    }
-
-    AndroidView(
-        factory = { playerView },
+    // 5) Use the PlayerView with your composable
+    AndroidViewBinding(
+        factory = { inflater, parent, attachToParent ->
+            LayoutPlayerTextureBinding.inflate(inflater, parent, attachToParent)
+        },
         modifier = Modifier.fillMaxSize()
-    )
+    ) {
+        playerView.player = exoPlayer
+        playerView.useController = false
+    }
 
-    // Clean up the player when the composable is disposed
+    // 6) Release the player when composable is removed
     DisposableEffect(Unit) {
         onDispose {
-            try {
-                exoPlayer.release()
-            } catch (e: Exception) {
-                Log.e("FullScreenVideo", "Error releasing player", e)
-            }
+            exoPlayer.release()
         }
     }
-
 }
+

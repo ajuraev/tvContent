@@ -20,6 +20,7 @@ fun FullScreenImage(url: String) {
         .build()
 
     AsyncImage(
+
         model = ImageRequest.Builder(context)
             .data(url)
             .crossfade(true)

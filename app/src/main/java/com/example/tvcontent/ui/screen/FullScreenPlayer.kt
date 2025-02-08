@@ -22,44 +22,35 @@ fun FullScreenPlayer(
 ) {
     BackHandler { onBack() }
 
-    // Observe the current playlist items
     val playlistItems by contentViewModel.currentPlaylistItemsFlow.collectAsState()
 
-    // Handle empty playlist case
     if (playlistItems.isEmpty()) {
         NoContentFallback()
         return
     }
 
     var currentIndex by remember { mutableStateOf(0) }
-
-    // Safely access the current item
-    val currentItem = playlistItems.getOrNull(currentIndex % playlistItems.size)
-
-    if (currentItem == null) {
+    val currentItem = playlistItems.getOrNull(currentIndex % playlistItems.size) ?: run {
         NoContentFallback()
         return
     }
 
-    if (currentItem.is_video) {
-        Log.d("Parent", "Showing item $currentIndex for URL=${currentItem.url}")
-        // For a video, show it until playback completes
-        FullScreenVideo(
-            url = currentItem.url,
-            playIndex = currentIndex,
-            onPlaybackEnded = {
-                // When the video finishes, go to the next item
+    // Keep screen on during playback
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ) {
+        if (currentItem.is_video) {
+            FullScreenVideo(
+                url = currentItem.url,
+                playIndex = currentIndex,
+                onPlaybackEnded = { currentIndex += 1 }
+            )
+        } else {
+            FullScreenImage(url = currentItem.url)
+            LaunchedEffect(currentItem) {
+                delay(currentItem.duration * 1000L)
                 currentIndex += 1
             }
-        )
-    } else {
-        // For an image, show it, then delay for duration
-        FullScreenImage(url = currentItem.url)
-
-        // Use a side-effect that waits duration, then advances to the next item
-        LaunchedEffect(currentItem) {
-            delay(currentItem.duration * 1000L)
-            currentIndex += 1
         }
     }
 }
