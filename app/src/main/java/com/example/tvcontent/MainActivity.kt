@@ -59,8 +59,7 @@ class MainActivity : ComponentActivity() {
 
             TvContentTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(8.dp)
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     // Setup your navigation graph
                     AppNavigation(
