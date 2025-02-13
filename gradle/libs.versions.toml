@@ -5,6 +5,7 @@ coreKtx = "1.15.0"
 appcompat = "1.7.0"
 composeBom = "2024.04.01"
 libvlcAll = "3.3.16"
+securityCrypto = "1.1.0-alpha06"
 tvFoundation = "1.0.0-alpha12"
 tvMaterial = "1.0.0"
 lifecycleRuntimeKtx = "2.8.7"
@@ -16,6 +17,7 @@ uiViewbinding = "1.7.7"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }

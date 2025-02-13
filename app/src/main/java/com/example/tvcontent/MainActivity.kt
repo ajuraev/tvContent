@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import kotlinx.serialization.json.Json
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tvcontent.ui.theme.TvContentTheme
 import com.example.tvcontent.viewModel.ContentViewModel
+import com.example.tvcontent.viewModel.DeviceActivationViewModel
 import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.gotrue.Auth
 import io.github.jan.supabase.gotrue.auth
@@ -49,10 +51,18 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         supabase.auth.init()
 
+        val contentViewModel: ContentViewModel by viewModels {
+            ContentViewModel.Factory(supabase, applicationContext = applicationContext)
+        }
+
+        contentViewModel.loadDevice(this)
+
         setContent {
             // Provide a single instance of the ContentViewModel
-            val contentViewModel: ContentViewModel = viewModel(
-                factory = ContentViewModel.Factory(supabase)
+
+
+            val activationViewModel: DeviceActivationViewModel = viewModel(
+                factory = DeviceActivationViewModel.Factory(supabase)
             )
 
             val navController = rememberNavController()
@@ -65,7 +75,8 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         navController = navController,
                         supabaseClient = supabase,
-                        contentViewModel = contentViewModel
+                        contentViewModel = contentViewModel,
+                        activationViewModel = activationViewModel
                     )
                 }
             }

@@ -2,9 +2,13 @@ package com.example.tvcontent.ui.component
 
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.media3.common.MediaItem
@@ -66,16 +70,27 @@ fun UnifiedMediaPlayer(
     }
 
     // Compose <-> AndroidView bridge for PlayerView
-    AndroidViewBinding(
-        factory = { inflater, parent, attachToParent ->
-            LayoutPlayerTextureBinding.inflate(inflater, parent, attachToParent)
-        },
-        modifier = modifier.fillMaxSize()
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .focusRequester(FocusRequester())
+        .focusable(false)
     ) {
-        playerView.player = exoPlayer
-        playerView.useController = false
-        playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
-        playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+        AndroidViewBinding(
+            factory = { inflater, parent, attachToParent ->
+                LayoutPlayerTextureBinding.inflate(inflater, parent, attachToParent).apply {
+                    playerView.apply {
+                        isFocusable = false
+                        isFocusableInTouchMode = false
+                    }
+                }
+            },
+            modifier = modifier.fillMaxSize()
+        ) {
+            playerView.player = exoPlayer
+            playerView.useController = false
+            playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+            playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+        }
     }
 
     // Release player when removed

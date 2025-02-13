@@ -4,6 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/playerView"
     android:keepScreenOn="true"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    app:use_controller="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:surface_type="texture_view" />

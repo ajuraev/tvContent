@@ -62,7 +62,7 @@ fun LoginScreen(
                             this.password = password
                         }
                         // Reconnect to Realtime after successful login
-                        contentViewModel.resubscribeToRealtime()
+//                        contentViewModel.resubscribeToRealtime()
                         onLoginSuccess()
                     } catch (e: Exception) {
                         errorMessage = "Login failed: ${e.message}"
